@@ -22,7 +22,7 @@ public class GameScreen {
      * Здесь создаётся всё
      */
     public void create() {
-        hero = new Hero(new Texture("knight.png")); // ссылка на модуль assets, где должны лежать ресурсы
+        hero = new Hero(this, new Texture("knight.png")); // ссылка на модуль assets, где должны лежать ресурсы
         darkKnight = new DarkKnight(this, new Texture("dark_knight.png")); // ссылка на модуль assets, где должны лежать ресурсы
     }
 
@@ -51,13 +51,13 @@ public class GameScreen {
         hero.update(deltaTime);
         darkKnight.update(deltaTime);
 
-        float dst = (float) Math.sqrt(
-            (hero.getX() - darkKnight.getX()) * (hero.getX() - darkKnight.getX()) +
-                (hero.getY() - darkKnight.getY()) * (hero.getY() - darkKnight.getY())); // расчёт дистанции между героем и рыцарем
-
-        if (dst <= 80.0f) {
-            hero.takeDamage(deltaTime * 10.0f); // если подошли близко, то уменьшение здоровья на 10 в секунду
-        }
+        /**
+         * Код ниже можно использовать для дамажещей ауры
+         */
+//         Если дистанция между позициям героя и рыцаря меньше или равна сравниваемому значению
+//        if (hero.getPosition().dst(darkKnight.getPosition()) <= 80.0f) {
+//            hero.takeDamage(deltaTime * 10.0f); // если подошли близко, то уменьшение здоровья на 10 в секунду
+//        }
     }
 
     public Hero getHero() {

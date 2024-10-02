@@ -2,66 +2,83 @@ package io.github.test_game.model;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import io.github.test_game.GameScreen;
 
-public class DarkKnight {
+public class DarkKnight extends MainModel {
+    /**
+     * Используется для выбора действия в заданное время
+     */
+    private float moveTimer;
+    private float activityRadius;
 
-    private Texture texture;
-    private float speed;
-    private float radius;
-
-    private float x;
-    private float y;
-
-    private GameScreen gameScreen;
+    /**
+     * Направление
+     */
+    private Vector2 direction;
+    /**
+     * Временной вектор для промежуточных расчётов
+     */
+    private Vector2 temp;
 
     public DarkKnight(GameScreen gameScreen, Texture texture) {
         this.gameScreen = gameScreen;
         this.texture = texture;
-        x = 1000.0f;
-        y = 100.0f;
-        radius = 200.0f;
-        speed = 100.0f;
-    }
-
-    public void render(SpriteBatch batch) { // принимает в параметр ссылку на полотно
-        batch.draw(texture, x, y); // отрисовка с текстурой и точкой, где стоит
+        this.position = new Vector2(1000.0f, 100.0f);
+        this.direction = new Vector2(0f, 0f);
+        this.temp = new Vector2(0f, 0f);
+        this.speed = 100.0f;
+        this.activityRadius = 150.0f;
+        this.hp = 50;
+        this.hpMax = hp;
+        this.weapon = new Weapon("Mace", 100.0f, 1.0f, 50.0f);
+        this.textureHP = new Texture("hp_bar.png");
     }
 
     /**
      * Что происходит с рыцарем в цикле
      */
+    @Override
     public void update(float deltaTime) {
-        float dst = (float) Math.sqrt(
-            (gameScreen.getHero().getX() - this.x) * (gameScreen.getHero().getX() - this.x) +
-                (gameScreen.getHero().getY() - this.y) * (gameScreen.getHero().getY() - this.y)); // получаем квадратный корень из квадрата разности расстояний между героем и рыцарем
-
-        if (dst <= radius) { // Если герой подошёл, то рыцарь пойдёт за ним
-            if (x < gameScreen.getHero().getX()) { // Если герой правее, то двигаемся вправо
-                x += speed * deltaTime;
-            }
-            if (x > gameScreen.getHero().getX()) { // Если герой левее, то двигаемся влево
-                x -= speed * deltaTime;
-            }
-            if (y < gameScreen.getHero().getY()) { // Если герой выше, то двигаемся выше
-                y += speed * deltaTime;
-            }
-            if (y > gameScreen.getHero().getY()) { // Если герой ниже, то двигаемся ниже
-                y -= speed * deltaTime;
-            }
+        super.update(deltaTime);
+        float dst = gameScreen.getHero().getPosition().dst(position);
+        // Если расстояние между рыцарем и героем меньше радиуса рыцаря, то рыцарь будет двигаться в сторону героя
+        if (dst < activityRadius) {
+            temp.set(gameScreen.getHero().getPosition()).sub(position).nor(); // Вычитаем из вектора героя, вектор рыцарь, чтобы рыцарь шёл в сторону героя
+            position.mulAdd(temp, speed * deltaTime);
         } else {
-            x -= speed * deltaTime;
-            if (x <= 0.0f) {
-                x = 1280.0f;
+            // В каждом кадре мы к текущей позиции прибавляем вектор направления, умноженный на заданную скорость и промежуток времени между текущим кадром и последним кадром
+            position.mulAdd(direction, speed * deltaTime);
+            moveTimer -= deltaTime;
+            if (moveTimer < 0.0f) {
+                moveTimer = MathUtils.random(2.0f, 3.0f);
+                direction.set(MathUtils.random(-1.0f, 1.0f), MathUtils.random(-1.0f, 1.0f)); // Выбор случайного направления
+                direction.nor(); // Нормирование вектора движения
             }
         }
+        // Если рыцарь подошёл на расстояние удара
+        if (dst < weapon.getAttackRadius()) {
+            attackTimer += deltaTime;
+            if (attackTimer >= weapon.getAttackPeriod()) {
+                attackTimer = 0.0f;
+                gameScreen.getHero().takeDamage(weapon.getDamage());
+            }
+        }
+        checkScreenBounds();
     }
 
-    public float getX() {
-        return x;
+    @Override
+    public void showHpBar(SpriteBatch batch) {
+        batch.setColor(0, 0, 0, 1); // покрасить в чёрный
+        batch.draw(textureHP, position.x + 65 - 2, position.y + 225 - 2, 103, 24); // рамка здоровья
+
+        batch.setColor(1, 0, 0, 1); // покрасить всех в красный
+        batch.draw(textureHP, position.x + 65, position.y + 225, 0, 0, hp / hpMax * 100, 20, 1, 1, 0, 0, 0, 80, 20, false, false); // отрисовка полоски ХП с текстурой и точкой + уменьшение красного цвета, если подошли близко к рыцарю
+        batch.setColor(1, 1, 1, 1); // покрасить только белую полоску в красный
     }
 
-    public float getY() {
-        return y;
+    public Vector2 getPosition() {
+        return position;
     }
 }
