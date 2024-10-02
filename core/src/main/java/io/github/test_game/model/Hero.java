@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import io.github.test_game.GameScreen;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Модель героя
  */
@@ -31,15 +33,25 @@ public class Hero extends MainModel {
         /**
          * Код ниже отвечает за логику нанесения урона героем
          */
-        // Высчитываем дистанцию между героем и рыцарем
-        float dst = gameScreen.getDarkKnight().getPosition().dst(position);
+
+        AtomicReference<DarkKnight> nearestKnight = new AtomicReference<>();
+        AtomicReference<Float> minDist = new AtomicReference<>(Float.MAX_VALUE);
+        gameScreen.getAllDarkKnights().forEach(darkKnight -> {
+            float dst = darkKnight.getPosition().dst(position);
+            if (dst < minDist.get()) {
+                minDist.set(dst);
+                nearestKnight.set(darkKnight);
+            }
+        });
+
+
         // Если дистанция меньше, чем радиус оружия
-        if (dst < weapon.getAttackRadius()) {
+        if (minDist.get() < weapon.getAttackRadius()) {
             attackTimer += deltaTime;
             // Если промежуток, между атаками героя больше, чем скорость атаки оружия
             if (attackTimer > weapon.getAttackPeriod()) {
                 attackTimer = 0.0f;
-                gameScreen.getDarkKnight().takeDamage(weapon.getDamage());
+                nearestKnight.get().takeDamage(weapon.getDamage());
             }
         }
 

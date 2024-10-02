@@ -1,6 +1,7 @@
 package io.github.test_game.model;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -25,7 +26,7 @@ public class DarkKnight extends MainModel {
     public DarkKnight(GameScreen gameScreen, Texture texture) {
         this.gameScreen = gameScreen;
         this.texture = texture;
-        this.position = new Vector2(1000.0f, 100.0f);
+        this.position = new Vector2(MathUtils.random(0, 1280), MathUtils.random(0, 720));
         this.direction = new Vector2(0f, 0f);
         this.temp = new Vector2(0f, 0f);
         this.speed = 100.0f;
@@ -69,13 +70,16 @@ public class DarkKnight extends MainModel {
     }
 
     @Override
-    public void showHpBar(SpriteBatch batch) {
+    public void showHpBar(SpriteBatch batch, BitmapFont font24) {
         batch.setColor(0, 0, 0, 1); // покрасить в чёрный
         batch.draw(textureHP, position.x + 65 - 2, position.y + 225 - 2, 103, 24); // рамка здоровья
 
         batch.setColor(1, 0, 0, 1); // покрасить всех в красный
         batch.draw(textureHP, position.x + 65, position.y + 225, 0, 0, hp / hpMax * 100, 20, 1, 1, 0, 0, 0, 80, 20, false, false); // отрисовка полоски ХП с текстурой и точкой + уменьшение красного цвета, если подошли близко к рыцарю
         batch.setColor(1, 1, 1, 1); // покрасить только белую полоску в красный
+
+        // Отображение цифр HP
+        font24.draw(batch, String.valueOf((int) hp), position.x + 75, position.y + 244, 80, 1, false);
     }
 
     public Vector2 getPosition() {
