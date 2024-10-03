@@ -5,6 +5,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import io.github.test_game.item.Item;
+import io.github.test_game.item.ItemsEmitter;
+import io.github.test_game.map.Map;
 import io.github.test_game.model.DarkKnight;
 import io.github.test_game.model.Hero;
 import io.github.test_game.model.MainModel;
@@ -24,10 +27,12 @@ public class GameScreen {
     private BitmapFont font24;
 
     private Hero hero;
-    private Texture floorTexture;
 
+    private Map map = new Map();
 
     private List<MainModel> allModels = new ArrayList<>();
+
+    private ItemsEmitter itemsEmitter = new ItemsEmitter();
 
     // TODO Оставить единую коллекцию
     private List<DarkKnight> allDarkKnights = new ArrayList<>();
@@ -51,7 +56,11 @@ public class GameScreen {
         allModels.addAll(List.of(
             hero,
             new DarkKnight(this, new Texture("dark_knight.png")),
+            new DarkKnight(this, new Texture("dark_knight.png")),
+            new DarkKnight(this, new Texture("dark_knight.png")),
+            new DarkKnight(this, new Texture("dark_knight.png")),
             new DarkKnight(this, new Texture("dark_knight.png"))
+
         ));
 
         for (MainModel model : allModels) {
@@ -61,7 +70,7 @@ public class GameScreen {
         }
 
         font24 = new BitmapFont(Gdx.files.internal("font24.fnt"));
-        floorTexture = new Texture("floor.png");
+
     }
 
 
@@ -77,15 +86,13 @@ public class GameScreen {
         // Отрисовка между begin() и end()
         batch.begin();
 
-        // Заполнение земли по фиксированному размеру экрана 16:9
-        for (int i = 0; i < 16; i++) {
-            for (int j = 0; j < 9; j++) {
-                batch.draw(floorTexture, i * 80, j * 80);
-            }
-        }
+        // Oтрисовка карты
+        map.render(batch);
 
         allModels.stream().sorted(drawOrderComparator).forEach(x -> x.render(batch, font24));
 
+        itemsEmitter.render(batch);
+        hero.renderHUD(batch, font24);
         batch.end();
     }
 
@@ -102,8 +109,23 @@ public class GameScreen {
             if (!knight.isAlive()) {
                 allDarkKnights.remove(knight);
                 allModels.remove(knight);
+                // Когда рыцарь умирает, то на его месте появляются предметы
+                itemsEmitter.generateRandomItem(knight.getPosition().x, knight.getPosition().y, 5, 0.8f);
+                // Сообщаем герою, что он убил рыцаря и производим действие
+                hero.killDarkKnight(knight);
             }
         }
+
+        for (int j = 0; j < itemsEmitter.getItems().length; j++) {
+            Item item = itemsEmitter.getItems()[j];
+            if (item.isActive()) {
+                float dst = hero.getPosition().dst(item.getPosition());
+                if (dst < 15.0f) { // Радиус сбора предметов у героя
+                    hero.takeItem(item);
+                }
+            }
+        }
+        itemsEmitter.update(deltaTime);
 
         /**
          * Код ниже можно использовать для дамажещей ауры
@@ -120,5 +142,9 @@ public class GameScreen {
 
     public List<DarkKnight> getAllDarkKnights() {
         return allDarkKnights;
+    }
+
+    public Map getMap() {
+        return map;
     }
 }

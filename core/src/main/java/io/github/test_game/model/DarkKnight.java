@@ -14,19 +14,13 @@ public class DarkKnight extends MainModel {
     private float moveTimer;
     private float activityRadius;
 
-    /**
-     * Направление
-     */
-    private Vector2 direction;
-    /**
-     * Временной вектор для промежуточных расчётов
-     */
-    private Vector2 temp;
-
     public DarkKnight(GameScreen gameScreen, Texture texture) {
         this.gameScreen = gameScreen;
         this.texture = texture;
         this.position = new Vector2(MathUtils.random(0, 1280), MathUtils.random(0, 720));
+        while (!gameScreen.getMap().isCellPassable(position)) {
+            this.position.set(MathUtils.random(0, 1280), MathUtils.random(0, 720));
+        }
         this.direction = new Vector2(0f, 0f);
         this.temp = new Vector2(0f, 0f);
         this.speed = 100.0f;
@@ -46,11 +40,8 @@ public class DarkKnight extends MainModel {
         float dst = gameScreen.getHero().getPosition().dst(position);
         // Если расстояние между рыцарем и героем меньше радиуса рыцаря, то рыцарь будет двигаться в сторону героя
         if (dst < activityRadius) {
-            temp.set(gameScreen.getHero().getPosition()).sub(position).nor(); // Вычитаем из вектора героя, вектор рыцарь, чтобы рыцарь шёл в сторону героя
-            position.mulAdd(temp, speed * deltaTime);
+            direction.set(gameScreen.getHero().getPosition()).sub(position).nor();// Вычитаем из вектора героя, вектор рыцаря, чтобы рыцарь шёл в сторону героя
         } else {
-            // В каждом кадре мы к текущей позиции прибавляем вектор направления, умноженный на заданную скорость и промежуток времени между текущим кадром и последним кадром
-            position.mulAdd(direction, speed * deltaTime);
             moveTimer -= deltaTime;
             if (moveTimer < 0.0f) {
                 moveTimer = MathUtils.random(2.0f, 3.0f);
@@ -58,6 +49,9 @@ public class DarkKnight extends MainModel {
                 direction.nor(); // Нормирование вектора движения
             }
         }
+
+        move(deltaTime);
+
         // Если рыцарь подошёл на расстояние удара
         if (dst < weapon.getAttackRadius()) {
             attackTimer += deltaTime;

@@ -19,6 +19,14 @@ public abstract class MainModel {
     float attackTimer;
     GameScreen gameScreen;
     Weapon weapon;
+    /**
+     * Направление перемещения
+     */
+    Vector2 direction;
+    /**
+     * Временной вектор для промежуточных расчётов
+     */
+    Vector2 temp;
 
     public Vector2 getPosition() {
         return position;
@@ -91,5 +99,15 @@ public abstract class MainModel {
 
     public boolean isAlive() {
         return hp > 0.0f;
+    }
+
+    public void move(float deltaTime) {
+        // В каждом кадре мы к текущей позиции прибавляем вектор направления, умноженный на заданную скорость и промежуток времени между текущим кадром и последним кадром
+        temp.set(position).mulAdd(direction, speed * deltaTime);
+
+        // Если клетка проходима, то совершаем движение
+        if (gameScreen.getMap().isCellPassable(temp)) {
+            position.set(temp);
+        }
     }
 }
