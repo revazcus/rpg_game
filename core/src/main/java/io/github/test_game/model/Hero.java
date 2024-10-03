@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import io.github.test_game.GameScreen;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class Hero extends MainModel {
 
+    private String name;
     private int coins;
     private int level;
     private int exp;
@@ -27,8 +29,9 @@ public class Hero extends MainModel {
     private int[] expTo = {0, 0, 100, 300, 500, 750, 1000, 2000};
 
     public Hero(GameScreen gameScreen, Texture texture) {
+        super(texture);
+        this.name = "Player";
         this.level = 1;
-        this.texture = texture;
         this.position = new Vector2(200.0f, 200.0f);
         while (!gameScreen.getMap().isCellPassable(position)) {
             this.position.set(MathUtils.random(0, 1280), MathUtils.random(0, 720));
@@ -37,10 +40,9 @@ public class Hero extends MainModel {
         this.hp = 100.0f;
         this.hpMax = hp;
         this.textureHP = new Texture("hp_bar.png");
-        this.weapon = new Weapon("Sword", 50.0f, 0.5f, 10f);
+        this.weapon = new Weapon("Sword", 100.0f, 0.5f, 50f);
         this.gameScreen = gameScreen;
         this.direction = new Vector2(0, 0);
-        this.temp = new Vector2(0, 0);
     }
 
     /**
@@ -70,6 +72,7 @@ public class Hero extends MainModel {
             if (attackTimer > weapon.getAttackPeriod()) {
                 attackTimer = 0.0f;
                 nearestKnight.get().takeDamage(weapon.getDamage());
+                gameScreen.getSound().play();
             }
         }
 
@@ -101,10 +104,23 @@ public class Hero extends MainModel {
      * Отрисовка интерфейса
      */
     public void renderHUD(SpriteBatch batch, BitmapFont font24) {
-        font24.draw(batch, "Hero: Player\n" + // Имя
-            "Level: " + level + "\n" + // Уровень
-            "Exp: " + exp + " / " + expTo[level + 1] + "\n" + // Опыта + сколько нужно до следующего левела
-            "Coins: " + coins, 20, 700); // Количество монет
+        // Оптимизация через StringBuilder для того, чтобы не создавать новые String при конкатенации
+        stringHelper.setLength(0);
+        stringHelper
+            .append("Hero: ")
+            .append(name)
+            .append("\n")
+            .append("Level: ")
+            .append(level)
+            .append("\n")
+            .append("Exp: ")
+            .append(exp)
+            .append(" / ")
+            .append(expTo[level + 1])
+            .append("\n")
+            .append("Coins: ")
+            .append(coins);
+        font24.draw(batch, stringHelper, 20, 700);
     }
 
     /**
@@ -114,7 +130,17 @@ public class Hero extends MainModel {
     public void takeItem(Item item) {
         switch (item.getType()) {
             case COINS:
-                coins += MathUtils.random(10, 20);
+                int amount = MathUtils.random(10, 20);
+                coins += amount;
+                stringHelper.setLength(0);
+                stringHelper.append("+").append(amount);
+                gameScreen.getFlyingTextEmitter().setup(item.getPosition().x + 20, item.getPosition().y + 20, stringHelper);
+                break;
+            case MEDKIT:
+                hp += 20;
+                if (hp > hpMax) {
+                    hp = hpMax;
+                }
                 break;
         }
         item.deactivate();

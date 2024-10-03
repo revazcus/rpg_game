@@ -1,48 +1,34 @@
-package io.github.test_game.item;
+package io.github.test_game.text;
 
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import io.github.test_game.item.Item;
 
-/**
- * Предметы
- */
-public class Item {
-
-    public enum Type {
-        COINS(0), MEDKIT(1);
-
-        int index;
-
-
-        Type(int index) {
-            this.index = index;
-        }
-    }
-
-    private Type type;
+public class FlyingText {
     private Vector2 position;
     private float time;
     private float timeMax;
     private boolean active;
+    private StringBuilder text;
 
     /**
      * Полёт
      */
     private Vector2 velocity;
 
-    public Item() {
+    public FlyingText() {
         this.position = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
-        this.type = Type.COINS;
+        this.text = new StringBuilder();
         this.time = 0.0f;
         this.timeMax = 5.0f;
         this.active = false;
     }
 
-    public void setup(float x, float y, Type type) {
+    public void setup(float x, float y, StringBuilder text) {
         this.position.set(x, y);
-        this.velocity.set(MathUtils.random(-20, 20), MathUtils.random(-20, 20));
-        this.type = type;
+        this.velocity.set(20, 40);
+        this.text.setLength(0);
+        this.text.append(text);
         this.time = 0.0f; // Обязательно, чтобы новые созданные item не считались протухшими
         this.active = true;
     }
@@ -64,11 +50,11 @@ public class Item {
         }
     }
 
-    public Type getType() {
-        return type;
-    }
-
     public Vector2 getPosition() {
         return position;
+    }
+
+    public StringBuilder getText() {
+        return text;
     }
 }

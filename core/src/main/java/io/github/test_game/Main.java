@@ -4,7 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms.
- * Основной код приложения тут
+ * Для запаковки jar в exe (с jvm и min JRE 1.8) можно использовать launch4j
  * */
 public class Main extends ApplicationAdapter {
 

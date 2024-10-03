@@ -15,14 +15,13 @@ public class DarkKnight extends MainModel {
     private float activityRadius;
 
     public DarkKnight(GameScreen gameScreen, Texture texture) {
+        super(texture);
         this.gameScreen = gameScreen;
-        this.texture = texture;
         this.position = new Vector2(MathUtils.random(0, 1280), MathUtils.random(0, 720));
         while (!gameScreen.getMap().isCellPassable(position)) {
             this.position.set(MathUtils.random(0, 1280), MathUtils.random(0, 720));
         }
         this.direction = new Vector2(0f, 0f);
-        this.temp = new Vector2(0f, 0f);
         this.speed = 100.0f;
         this.activityRadius = 150.0f;
         this.hp = 50;
@@ -38,17 +37,17 @@ public class DarkKnight extends MainModel {
     public void update(float deltaTime) {
         super.update(deltaTime);
         float dst = gameScreen.getHero().getPosition().dst(position);
-        // Если расстояние между рыцарем и героем меньше радиуса рыцаря, то рыцарь будет двигаться в сторону героя
-        if (dst < activityRadius) {
+//        // Если расстояние между рыцарем и героем меньше радиуса рыцаря, то рыцарь будет двигаться в сторону героя
+//        if (dst < activityRadius) {
             direction.set(gameScreen.getHero().getPosition()).sub(position).nor();// Вычитаем из вектора героя, вектор рыцаря, чтобы рыцарь шёл в сторону героя
-        } else {
-            moveTimer -= deltaTime;
-            if (moveTimer < 0.0f) {
-                moveTimer = MathUtils.random(2.0f, 3.0f);
-                direction.set(MathUtils.random(-1.0f, 1.0f), MathUtils.random(-1.0f, 1.0f)); // Выбор случайного направления
-                direction.nor(); // Нормирование вектора движения
-            }
-        }
+//        } else {
+//            moveTimer -= deltaTime;
+//            if (moveTimer < 0.0f) {
+//                moveTimer = MathUtils.random(2.0f, 3.0f);
+//                direction.set(MathUtils.random(-1.0f, 1.0f), MathUtils.random(-1.0f, 1.0f)); // Выбор случайного направления
+//                direction.nor(); // Нормирование вектора движения
+//            }
+//        }
 
         move(deltaTime);
 

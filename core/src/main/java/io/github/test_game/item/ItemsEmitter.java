@@ -23,7 +23,7 @@ public class ItemsEmitter {
         for (int i = 0; i < items.length; i++) {
             items[i] = new Item();
         }
-        texture = new Texture("coin.png");
+        texture = new Texture("coins_and_medkit.png");
         textureRegions = new TextureRegion(texture).split(32, 32)[0];
     }
 
